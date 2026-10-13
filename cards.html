@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Hitster YTM – printable cards</title>
+<script src="vendor/qrcode.js"></script><script src="songs.js"></script><script src="common.js"></script>
+<style>
+@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#444}
+.ctrl{padding:10px;background:#111;color:#eee;font-size:14px}.ctrl button{padding:6px 12px}
+.page{width:210mm;height:297mm;background:#fff;margin:10px auto;padding:16.5mm 7.5mm;display:grid;grid-template-columns:repeat(3,65mm);grid-template-rows:repeat(4,66mm);justify-content:center;page-break-after:always;break-after:page}
+.card{width:65mm;height:65mm;border:.2mm dashed #bbb;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;overflow:hidden}
+.front{background:#0d0221}.front .qr{background:#fff;padding:3mm;border-radius:3mm;box-shadow:0 0 0 1.2mm #ff2bd6,0 0 0 2.4mm #00e5ff}.front svg{width:40mm;height:40mm;display:block}
+.back{padding:4mm;color:#fff}.back .a{font-size:11pt;font-weight:bold}.back .y{font-size:40pt;font-weight:900;margin:2mm 0}.back .t{font-size:10.5pt;font-style:italic}
+.empty{border:none;background:none}
+@media print{body{background:none}.ctrl{display:none}.page{margin:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body>
+<div class="ctrl">Deck: <select id="deck"><option value="b">Built-in</option><option value="c">Custom</option><option value="bc">Both</option></select>
+ <button onclick="print()">Print</button> — Print double-sided, <b>flip on long edge</b>, 100% scale (no "fit to page"). Back pages are mirrored so they align with fronts. <span id="n"></span></div>
+<div id="out"></div>
+<script>
+const colors=['#ff2bd6','#00e5ff','#ffd400','#7cff4f','#ff7a00','#a259ff','#ff3b3b','#00ffa3'];
+function qrSvg(t){const q=qrcode(0,'M');q.addData(t);q.make();return q.createSvgTag({cellSize:4,margin:0,scalable:true});}
+function render(){const v=deck.value;let s=[];if(v.includes('b'))s=s.concat(HITSTER_SONGS);if(v.includes('c'))s=s.concat(HX.custom());
+ n.textContent=s.length+' cards, '+Math.ceil(s.length/12)+' sheets';let h='';
+ for(let p=0;p<s.length;p+=12){const g=s.slice(p,p+12);let f='',b='';
+  for(let i=0;i<12;i++){const c=g[i];f+=c?`<div class="card front"><div class="qr">${qrSvg(HX.ytmUrl(c.id))}</div></div>`:'<div class="card empty"></div>';}
+  for(let r=0;r<4;r++)for(let col=2;col>=0;col--){const c=g[r*3+col];
+   b+=c?`<div class="card back" style="background:${colors[(p+r*3+col)%colors.length]};color:#111"><div class="a">${HX.esc(c.artist)}</div><div class="y">${c.year}</div><div class="t">${HX.esc(c.title)}</div></div>`:'<div class="card empty"></div>';}
+  h+=`<div class="page">${f}</div><div class="page">${b}</div>`;}
+ out.innerHTML=h;}
+deck.onchange=render;render();
+</script></body></html>

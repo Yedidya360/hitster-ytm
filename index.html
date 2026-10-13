@@ -1,0 +1,250 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0218"><link rel="apple-touch-icon" href="icons/icon-192.png"><link rel="icon" href="icons/icon-192.png">
+<title>HITSTER · YouTube Music edition</title>
+<script src="songs.js"></script><script src="common.js"></script><script src="vendor/jsQR.js"></script>
+<style>
+:root{--bg:#0b0218;--pink:#ff2bd6;--cyan:#00e5ff;--yel:#ffd400;--txt:#f4ecff;--card:#1a0b33}
+*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(circle at 20% 0,#2a0a4a,var(--bg) 60%) fixed;color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100%}
+h1{font-size:clamp(2.2rem,9vw,4rem);margin:.3em 0;text-align:center;letter-spacing:.08em;font-weight:900;color:#fff;text-shadow:0 0 8px var(--pink),0 0 22px var(--pink),0 0 40px var(--cyan)}
+h2{margin:.4em 0;color:var(--cyan);text-shadow:0 0 10px var(--cyan)}
+.wrap{max-width:900px;margin:0 auto;padding:12px 14px 80px}
+.screen{display:none}.screen.on{display:block}
+.panel{background:rgba(26,11,51,.85);border:1px solid #3d1d6e;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 0 20px rgba(255,43,214,.12)}
+button,.btn{font:inherit;font-weight:700;border:0;border-radius:999px;padding:10px 18px;margin:4px;cursor:pointer;color:#120024;background:var(--cyan);box-shadow:0 0 12px rgba(0,229,255,.5);text-decoration:none;display:inline-block}
+button.pink,.btn.pink{background:var(--pink);box-shadow:0 0 12px rgba(255,43,214,.6);color:#fff}
+button.yel{background:var(--yel);box-shadow:0 0 12px rgba(255,212,0,.5)}
+button.ghost,.btn.ghost{background:transparent;color:var(--txt);border:1px solid #6b47a8;box-shadow:none}
+button:disabled{opacity:.35;cursor:not-allowed}
+input,select,textarea{font:inherit;background:#12052a;color:var(--txt);border:1px solid #5a3a90;border-radius:10px;padding:9px;width:100%}
+textarea{min-height:110px;font-family:monospace;font-size:.85em}
+label{display:block;margin:8px 0 4px;color:#cbb8ee;font-size:.9em}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+.players .row{margin:6px 0}.players input{flex:5}.players button{flex:0}
+.muted{color:#a993cf;font-size:.88em}
+/* player area */
+#ytbox{position:fixed;left:-9999px;top:0;width:220px;height:220px;opacity:0;pointer-events:none}
+.disc{width:150px;height:150px;margin:8px auto;border-radius:50%;background:repeating-radial-gradient(circle,#111 0 2px,#222 3px 5px);border:3px solid var(--pink);box-shadow:0 0 25px var(--pink),inset 0 0 0 52px #111,inset 0 0 0 58px var(--cyan);position:relative}
+.disc.spin{animation:spin 2.2s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.disc::after{content:'?';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:var(--yel);text-shadow:0 0 10px var(--yel)}
+.scoreboard{display:flex;gap:8px;flex-wrap:wrap}
+.sb{flex:1;min-width:120px;padding:8px 10px;border-radius:12px;background:#140632;border:1px solid #3d1d6e}
+.sb.active{border-color:var(--pink);box-shadow:0 0 14px var(--pink)}
+.tok{color:var(--yel)}
+.timeline{display:flex;flex-wrap:wrap;align-items:stretch;gap:4px;padding:6px 0;min-height:110px}
+.card{width:92px;min-height:104px;border-radius:12px;padding:6px;text-align:center;display:flex;flex-direction:column;justify-content:center;color:#111;font-size:.72em;line-height:1.15}
+.card .y{font-size:1.9em;font-weight:900;margin:2px 0}.card .t{font-style:italic}
+.card.mystery{background:#120024;color:var(--yel);border:2px dashed var(--yel);box-shadow:0 0 14px rgba(255,212,0,.5);font-size:1.6em;font-weight:900;cursor:grab;touch-action:none}
+.card.right{outline:3px solid #3f3;box-shadow:0 0 18px #3f3}.card.wrong{outline:3px solid #f33;box-shadow:0 0 18px #f33}
+.slot{width:26px;min-height:104px;border-radius:10px;border:2px dashed #5a3a90;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8d6cc8;font-weight:900;transition:.15s}
+.slot:hover,.slot.hover{border-color:var(--cyan);background:rgba(0,229,255,.15);color:var(--cyan)}
+.slot.sel{width:92px;border-color:var(--yel);background:rgba(255,212,0,.12);color:var(--yel)}
+.slot.ch{border-color:var(--pink);background:rgba(255,43,214,.15);color:var(--pink);font-size:.62em;width:56px;text-align:center}
+.slot.disabled{pointer-events:none;opacity:.25}
+.big{font-size:1.15em}.center{text-align:center}
+.log{font-size:.85em;color:#cbb8ee;max-height:140px;overflow:auto}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1d0840;border:1px solid var(--pink);padding:10px 16px;border-radius:12px;box-shadow:0 0 20px var(--pink);z-index:99;display:none;max-width:90vw}
+video{width:100%;max-width:420px;border-radius:12px;display:block;margin:auto}
+.reveal{font-size:1.2em}.reveal b{color:var(--yel)}
+.ghostcard{position:fixed;pointer-events:none;z-index:50;opacity:.85}
+.winner{font-size:2.4em;text-align:center;color:var(--yel);text-shadow:0 0 18px var(--yel)}
+</style></head><body>
+<div id="ytbox"><div id="yt"></div></div>
+<div class="wrap">
+<h1>HITSTER</h1><div class="center muted" style="margin-top:-10px">YouTube Music edition · <a href="cards.html" style="color:var(--cyan)">print cards</a></div>
+
+<!-- SETUP -->
+<section id="setup" class="screen on">
+ <div class="panel"><h2>Players</h2><div class="players" id="plist"></div>
+  <button class="ghost" onclick="addPlayer()">+ Add player</button>
+  <div class="row"><div><label>Cards to win</label><input id="target" type="number" min="3" max="30" value="10"></div>
+   <div><label>Deck</label><select id="deckSel"><option value="b">Built-in (<span></span>)</option><option value="c">Custom</option><option value="bc">Built-in + Custom</option></select></div></div>
+  <div class="row"><div><label>Era filter (built-in)</label><select id="era"><option value="">All decades</option></select></div>
+   <div><label>Title/artist matching</label><select id="judge"><option value="auto">Auto (fuzzy) + manual override</option><option value="manual">Manual (group decides)</option></select></div></div>
+  <p class="muted">Rules: each player starts with 1 revealed card and 2 tokens (max 5). Place the mystery song in your timeline. Name title + artist to earn a token. Spend 1 token to skip, or to challenge another player's placement (steal the card if you're right). 3 tokens buys a card.</p>
+  <button class="pink big" onclick="startGame()">▶ Start game</button>
+  <button class="ghost" onclick="show('scan');startScan(false)">📷 Scan-only mode (physical cards)</button>
+ </div>
+ <div class="panel"><h2>Custom deck</h2>
+  <p class="muted">Paste CSV <code>url,title,artist,year</code> (one per line; url can be a youtube.com / music.youtube.com / youtu.be link or a bare video ID). Saved in this browser (localStorage).</p>
+  <textarea id="csv" placeholder="https://music.youtube.com/watch?v=dQw4w9WgXcQ,Never Gonna Give You Up,Rick Astley,1987"></textarea>
+  <label>…or import a YouTube / YouTube Music playlist URL (needs a free YouTube Data API v3 key; years must then be filled in)</label>
+  <div class="row"><input id="plurl" placeholder="https://music.youtube.com/playlist?list=PL..."><input id="apikey" placeholder="API key (optional, stored locally)"></div>
+  <button class="ghost" onclick="importPlaylist()">Fetch playlist → CSV box</button>
+  <button onclick="saveCsv(false)">Add to custom deck</button><button class="ghost" onclick="saveCsv(true)">Replace custom deck</button>
+  <button class="ghost" onclick="exportCsv()">Show current custom deck</button><button class="ghost" onclick="if(confirm('Clear custom deck?')){HX.saveCustom([]);updCount()}">Clear</button>
+  <div id="ccount" class="muted"></div>
+ </div>
+</section>
+
+<!-- GAME -->
+<section id="game" class="screen">
+ <div class="scoreboard" id="scores"></div>
+ <div class="panel center">
+  <div id="turnTitle" class="big"></div>
+  <div class="disc" id="disc"></div>
+  <div><button id="playBtn" onclick="togglePlay()">▶ Play</button><button class="ghost" onclick="restart()">⟲ From start</button>
+   <a id="ytmLink" class="btn ghost" target="_blank" rel="noopener">Open in YouTube Music ↗</a></div>
+  <div id="ytErr" class="muted"></div>
+ </div>
+ <div class="panel"><div id="phaseText" class="big"></div>
+  <div class="muted">Drag the <b>?</b> card into a gap, or tap a gap.</div>
+  <div class="timeline" id="timeline"></div>
+  <div id="guessBox" class="panel" style="border-color:var(--yel);box-shadow:0 0 16px rgba(255,212,0,.35)"><div class="big" style="color:var(--yel)">🎤 Name that song! <span class="muted">— both right = +1 ●</span></div><div class="row"><input id="gTitle" placeholder="Song title" autocomplete="off"><input id="gArtist" placeholder="Artist" autocomplete="off"></div><div class="muted">Leave empty to skip.</div></div>
+  <div id="actions" class="center" style="margin-top:8px"></div>
+  <div id="reveal" class="reveal center"></div>
+ </div>
+ <div class="panel"><div class="row"><button class="ghost" onclick="show('scan');startScan(true)">📷 Use physical card</button><button class="ghost" onclick="if(confirm('Quit game?'))location.reload()">Quit</button></div><div class="log" id="log"></div></div>
+</section>
+
+<!-- SCAN -->
+<section id="scan" class="screen"><div class="panel center">
+ <h2>Scan a card</h2><video id="cam" playsinline muted></video><canvas id="cv" hidden></canvas>
+ <p id="scanMsg" class="muted">Point the camera at the QR side of a card.</p>
+ <div id="scanPlayer" style="display:none"><div class="disc" id="disc2"></div>
+  <button onclick="togglePlay()" id="playBtn2">▶ Play</button><a id="ytmLink2" class="btn ghost" target="_blank" rel="noopener">Open in YouTube Music ↗</a>
+  <div><button class="yel" onclick="scanReveal()">Reveal</button><button class="ghost" onclick="startScan(scanForGame)">Scan next</button></div><div id="scanRev" class="reveal"></div></div>
+ <button class="ghost" onclick="stopScan();show(scanForGame?'game':'setup')">Back</button>
+</div></section>
+
+<!-- WIN -->
+<section id="win" class="screen"><div class="panel center"><div class="winner" id="winText"></div><div id="finalTl"></div><button class="pink" onclick="location.reload()">New game</button></div></section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const COLORS=['#ff2bd6','#00e5ff','#ffd400','#7cff4f','#ff7a00','#a259ff','#ff5c5c','#00ffa3'];
+const MAXTOK=5;
+let G=null, player=null, ytReady=false, pendingId=null, playing=false;
+function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms)}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==id));scrollTo(0,0)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function log(m){$('log').insertAdjacentHTML('afterbegin','<div>'+m+'</div>')}
+
+/* ---------- setup ---------- */
+function addPlayer(name){const n=$('plist').children.length;if(n>=10)return;const d=document.createElement('div');d.className='row';
+ d.innerHTML=`<input value="${HX.esc(name||'Player '+(n+1))}"><button class="ghost" title="remove">✕</button>`;d.querySelector('button').onclick=()=>d.remove();$('plist').appendChild(d)}
+addPlayer('Player 1');addPlayer('Player 2');
+(function(){const ds=new Set(HITSTER_SONGS.map(s=>Math.floor(s.year/10)*10));[...ds].sort().forEach(d=>$('era').insertAdjacentHTML('beforeend',`<option value="${d}">${d}s only</option>`));
+ [['60','1950–1979'],['80','1980–1999'],['00','2000+']].forEach(([v,l])=>$('era').insertAdjacentHTML('beforeend',`<option value="r${v}">${l}</option>`));
+ $('deckSel').options[0].text=`Built-in (${HITSTER_SONGS.length} songs)`;$('apikey').value=localStorage.getItem('hitster_apikey')||'';})();
+function updCount(){$('ccount').textContent='Custom deck: '+HX.custom().length+' songs'}updCount();
+function saveCsv(replace){const {out,bad}=HX.parseCSV($('csv').value);if(!out.length){toast('No valid rows (need url,title,artist,year)');return}
+ let c=replace?[]:HX.custom();const ids=new Set(c.map(x=>x.id));out.forEach(x=>{if(!ids.has(x.id)){c.push(x);ids.add(x.id)}});HX.saveCustom(c);updCount();
+ toast(`Saved ${out.length} songs`+(bad.length?`; skipped lines ${bad.join(',')}`:''))}
+function exportCsv(){$('csv').value='url,title,artist,year\n'+HX.custom().map(s=>[HX.ytmUrl(s.id),s.title,s.artist,s.year].map(v=>/,/.test(v)?`"${v}"`:v).join(',')).join('\n')}
+async function importPlaylist(){const m=$('plurl').value.match(/list=([\w-]+)/);if(!m){toast('Paste a playlist URL containing list=…');return}
+ const key=$('apikey').value.trim();if(!key){toast('Browsers cannot read playlists without an API key. Add a key, or paste CSV rows instead.',5000);return}
+ localStorage.setItem('hitster_apikey',key);let rows=[],tok='';
+ try{do{const r=await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=50&playlistId=${m[1]}&key=${encodeURIComponent(key)}${tok?'&pageToken='+tok:''}`);const j=await r.json();if(j.error)throw new Error(j.error.message);
+  j.items.forEach(it=>{const s=it.snippet;let artist=(s.videoOwnerChannelTitle||'').replace(/ - Topic$|VEVO$/,'');let title=s.title;const p=title.split(' - ');if(p.length>1&&!s.videoOwnerChannelTitle?.endsWith('- Topic')){artist=p[0];title=p.slice(1).join(' - ')}
+   title=title.replace(/\s*[\(\[](official|lyric|audio|video|hd|4k|remaster)[^\)\]]*[\)\]]/ig,'').trim();
+   rows.push([HX.ytmUrl(it.contentDetails.videoId),title,artist,''].map(v=>/,/.test(v)?`"${v.replace(/"/g,'')}"`:v).join(','))});tok=j.nextPageToken}while(tok)}
+ catch(e){toast('Playlist import failed: '+e.message,5000);return}
+ $('csv').value='url,title,artist,year\n'+rows.join('\n');toast(`Fetched ${rows.length} tracks – now fill in the year column, then "Add to custom deck"`,6000)}
+
+function buildDeck(){const v=$('deckSel').value,era=$('era').value;let b=HITSTER_SONGS.slice();
+ if(era){if(era[0]=='r'){const r={r60:[0,1979],r80:[1980,1999],r00:[2000,9999]}[era];b=b.filter(s=>s.year>=r[0]&&s.year<=r[1])}else b=b.filter(s=>Math.floor(s.year/10)*10==+era)}
+ let d=[];if(v.includes('b'))d=d.concat(b);if(v.includes('c'))d=d.concat(HX.custom());const seen=new Set();return shuffle(d.filter(s=>!seen.has(s.id)&&seen.add(s.id)))}
+function startGame(){const names=[...$('plist').querySelectorAll('input')].map(i=>i.value.trim()).filter(Boolean);if(!names.length){toast('Add a player');return}
+ const deck=buildDeck(),target=Math.max(2,+$('target').value||10);
+ if(deck.length<names.length*2+5){toast('Deck too small for this game ('+deck.length+' songs)');return}
+ G={players:names.map(n=>({name:n,tokens:2,tl:[deck.pop()]})),deck,target,turn:0,judge:$('judge').value};
+ G.players.forEach(p=>log(`${HX.esc(p.name)} starts with ${p.tl[0].year}`));show('game');newTurn()}
+
+/* ---------- turn flow ---------- */
+const cur=()=>G.players[G.turn];
+function newTurn(){if(!G.deck.length){endGame(null);return}
+ G.song=G.deck.pop();G.phase='place';G.sel=null;G.challenges=[];G.chIdx=0;$('gTitle').value=$('gArtist').value='';$('reveal').innerHTML='';
+ loadSong(G.song.id);render()}
+function sorted(p){return p.tl.slice().sort((a,b)=>a.year-b.year)}
+function fits(tl,idx,y){const s=tl.slice().sort((a,b)=>a.year-b.year);return (idx==0||s[idx-1].year<=y)&&(idx==s.length||s[idx].year>=y)}
+function render(){if(!G)return;const p=cur();
+ $('scores').innerHTML=G.players.map((q,i)=>`<div class="sb ${i==G.turn?'active':''}"><b>${HX.esc(q.name)}</b><br>🃏 ${q.tl.length}/${G.target} · <span class="tok">● ${q.tokens}</span></div>`).join('');
+ $('turnTitle').innerHTML=`<b style="color:var(--pink)">${HX.esc(p.name)}</b>'s turn · ${G.deck.length} songs left`;
+ const tl=sorted(p);let h='';const challenging=G.phase=='challenge';
+ const taken=new Set([G.sel,...G.challenges.map(c=>c.idx)]);
+ for(let i=0;i<=tl.length;i++){
+  let cls='slot',lbl='+';
+  if(G.sel===i){cls+=' sel';lbl=G.phase=='reveal'?cardHtml(G.song,G.correct?'right':'wrong',true):'?'}
+  const ch=G.challenges.find(c=>c.idx===i);if(ch){cls+=' ch';lbl='⚔ '+HX.esc(G.players[ch.p].name)}
+  if(G.phase=='reveal'||(challenging&&taken.has(i))||(G.phase=='place'&&false))cls+=' disabled';
+  if(G.sel===i&&G.phase=='reveal')h+=lbl;else h+=`<div class="${cls}" data-i="${i}">${G.sel===i&&G.phase=='place'?'<div class="card mystery" id="myst">?</div>':lbl}</div>`;
+  if(i<tl.length)h+=cardHtml(tl[i]);}
+ if(G.phase=='place'&&G.sel==null)h='<div class="card mystery" id="myst">?</div>'+'<div style="flex-basis:100%"></div>'+h;
+ $('timeline').innerHTML=h;
+ $('timeline').querySelectorAll('.slot').forEach(s=>s.onclick=()=>slotTap(+s.dataset.i));
+ const m=$('myst');if(m)enableDrag(m);
+ $('guessBox').style.display=(G.phase=='place'&&G.sel!=null)||challenging?'block':'none';
+ const A=$('actions');
+ if(G.phase=='place'){$('phaseText').innerHTML=`${HX.esc(p.name)}: where does this song belong?`;
+  A.innerHTML=`<button class="pink" ${G.sel==null?'disabled':''} onclick="lockIn()">Lock in</button>
+   <button class="ghost" ${p.tokens<1?'disabled':''} onclick="skipSong()">Skip (−1 ●)</button>
+   <button class="ghost" ${p.tokens<3?'disabled':''} onclick="buyCard()">Buy card (−3 ●)</button>`}
+ else if(challenging){const others=G.players.map((q,i)=>({q,i})).filter(o=>o.i!=G.turn);
+  $('phaseText').innerHTML=G.chIdx!=null&&G.chPick!=null?`<span style="color:var(--pink)">${HX.esc(G.players[G.chPick].name)}</span>: tap the gap you think is right`:'Challenge? Other players may spend 1 token to bet on a different gap.';
+  A.innerHTML=others.map(o=>`<button class="ghost" ${o.q.tokens<1||G.challenges.some(c=>c.p==o.i)?'disabled':''} onclick="pickChallenger(${o.i})">⚔ ${HX.esc(o.q.name)} (● ${o.q.tokens})</button>`).join('')+`<br><button class="yel" onclick="doReveal()">Reveal!</button>`}
+ else if(G.phase=='reveal'){$('phaseText').innerHTML='';A.innerHTML=`<button class="pink" onclick="nextTurn()">Next turn ▶</button>`}
+}
+function cardHtml(s,extra='',reveal){const c=COLORS[s.year%COLORS.length];return `<div class="card ${extra}" style="background:${c}"><div>${HX.esc(s.artist)}</div><div class="y">${s.year}</div><div class="t">${HX.esc(s.title)}</div></div>`}
+function slotTap(i){if(G.phase=='place'){G.sel=i;render()}else if(G.phase=='challenge'&&G.chPick!=null){if(i===G.sel||G.challenges.some(c=>c.idx===i))return;
+  G.players[G.chPick].tokens--;G.challenges.push({p:G.chPick,idx:i});log(`⚔ ${HX.esc(G.players[G.chPick].name)} challenges`);G.chPick=null;render()}}
+function pickChallenger(i){G.chPick=i;render();toast(G.players[i].name+': tap a different gap')}
+function enableDrag(el){el.onpointerdown=e=>{e.preventDefault();const g=el.cloneNode(true);g.classList.add('ghostcard');g.removeAttribute('id');document.body.appendChild(g);
+ const mv=ev=>{g.style.left=ev.clientX-46+'px';g.style.top=ev.clientY-52+'px';document.querySelectorAll('.slot').forEach(s=>s.classList.remove('hover'));const t=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.slot');if(t)t.classList.add('hover')};
+ mv(e);const up=ev=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);g.remove();const t=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.slot');if(t)slotTap(+t.dataset.i)};
+ addEventListener('pointermove',mv);addEventListener('pointerup',up)}}
+function norm(s){return (s||'').toLowerCase().replace(/\s(feat\.?|ft\.?|featuring)\s.*$/,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)|\[.*?\]/g,'').replace(/\b(the|feat|ft|and)\b|&/g,'').replace(/[^a-z0-9]/g,'')}
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]==b[j-1]?0:1));return d[a.length][b.length]}
+function close(g,t){g=norm(g);t=norm(t);if(!g)return false;return g==t||lev(g,t)<=Math.max(1,Math.floor(t.length*.25))||(g.length>=4&&t.includes(g)&&g.length>=t.length*.6)}
+function artistOk(g,a){return a.split(/\s*(?:&|,| ft\.? | feat\.? | and | x )\s*/i).some(x=>close(g,x))||close(g,a)}
+function lockIn(){G.phase='challenge';G.chPick=null;render()}
+function doReveal(){const p=cur(),s=G.song;G.guess={t:$('gTitle').value.trim(),a:$('gArtist').value.trim()};G.phase='reveal';G.correct=fits(p.tl,G.sel,s.year);let msg='';
+ if(G.correct){p.tl.push(s);msg=`✅ ${HX.esc(p.name)} placed it right!`;log(`${HX.esc(p.name)} won ${s.year}`)}
+ else{const w=G.challenges.find(c=>fits(p.tl,c.idx,s.year));msg=`❌ Wrong spot.`;
+  if(w){G.players[w.p].tl.push(s);msg+=` ⚔ ${HX.esc(G.players[w.p].name)} steals the card!`;log(`${HX.esc(G.players[w.p].name)} stole ${s.year}`)}}
+ const tOk=!!G.guess.t&&close(G.guess.t,s.title),aOk=!!G.guess.a&&artistOk(G.guess.a,s.artist),named=tOk&&aOk;
+ render();
+ let h=`${msg}<br>It was <b>${HX.esc(s.title)}</b> by <b>${HX.esc(s.artist)}</b> (${s.year})<br>`;
+ const mk=(ok,g,lbl)=>`<span id="${lbl}Res">${g?(ok?'✅':'❌'):'➖'} ${lbl}: ${g?'“'+HX.esc(g)+'”':'<i>skipped</i>'}</span>`;
+ h+=`<div style="margin:6px 0">${mk(tOk,G.guess.t,'title')} &nbsp; ${mk(aOk,G.guess.a,'artist')}</div>`;
+ if(G.judge=='auto'&&named){const full=p.tokens>=MAXTOK;gainToken(p);h+=full?`🎉 Named correctly – but already at max ${MAXTOK} tokens`:`🎉 Named correctly: +1 token`}
+ else h+=`<button class="ghost" id="nameBtn" onclick="manualName()">Override: ${HX.esc(p.name)} named it → +1 ●</button>`;
+ render();$('reveal').innerHTML=h}
+function gainToken(p){if(p.tokens<MAXTOK)p.tokens++;else toast('Max 5 tokens');log(`${HX.esc(p.name)} +1 token`)}
+function manualName(){gainToken(cur());$('nameBtn').remove();render()}
+function skipSong(){const p=cur();if(p.tokens<1)return;p.tokens--;log(`${HX.esc(p.name)} skipped (was ${G.song.year})`);toast('Skipped – new song!');G.deck.length?(G.song=G.deck.pop(),G.sel=null,loadSong(G.song.id),render()):endGame(null)}
+function buyCard(){const p=cur();if(p.tokens<3||!G.deck.length)return;p.tokens-=3;const s=G.deck.pop();p.tl.push(s);log(`${HX.esc(p.name)} bought ${s.year}`);toast(`Bought: ${s.title} (${s.year})`);if(p.tl.length>=G.target)return endGame(p);render()}
+function nextTurn(){stopAudio();const w=G.players.find(q=>q.tl.length>=G.target);if(w)return endGame(w);G.turn=(G.turn+1)%G.players.length;newTurn()}
+function endGame(w){stopAudio();show('win');if(!w)w=G.players.slice().sort((a,b)=>b.tl.length-a.tl.length||b.tokens-a.tokens)[0];
+ $('winText').innerHTML=`🏆 ${HX.esc(w.name)} wins!`;$('finalTl').innerHTML='<div class="timeline" style="justify-content:center">'+sorted(w).map(s=>cardHtml(s)).join('')+'</div>'}
+
+/* ---------- hidden YouTube playback ---------- */
+window.onYouTubeIframeAPIReady=()=>{player=new YT.Player('yt',{width:220,height:220,playerVars:{playsinline:1,controls:0,disablekb:1,rel:0,fs:0,iv_load_policy:3,origin:location.protocol.startsWith('http')?location.origin:undefined},
+ events:{onReady:()=>{ytReady=true;if(pendingId)player.cueVideoById(pendingId)},onStateChange:e=>{playing=e.data==1;spinUI()},
+  onError:e=>{$('ytErr').innerHTML=`⚠ In-page playback failed (error ${e.data}${location.protocol=='file:'?', file:// pages are often blocked by YouTube – serve over http':''}). Use “Open in YouTube Music”.`}}})};
+(function(){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.onerror=()=>{$('ytErr').textContent='YouTube player could not load (offline?) – use “Open in YouTube Music”.'};document.head.appendChild(s)})();
+function loadSong(id){pendingId=id;playing=false;$('ytErr').textContent='';[$('ytmLink'),$('ytmLink2')].forEach(a=>a.href=HX.ytmUrl(id));if(ytReady)player.cueVideoById(id);spinUI()}
+function togglePlay(){if(!ytReady){toast('Player not ready – try “Open in YouTube Music”');return}if(playing)player.pauseVideo();else player.playVideo()}
+function restart(){if(ytReady){player.seekTo(0,true);player.playVideo()}}
+function stopAudio(){if(ytReady)try{player.stopVideo()}catch(e){}playing=false;spinUI()}
+function spinUI(){['disc','disc2'].forEach(d=>$(d).classList.toggle('spin',playing));['playBtn','playBtn2'].forEach(b=>$(b).textContent=playing?'⏸ Pause':'▶ Play')}
+
+/* ---------- QR scan mode ---------- */
+let stream=null,scanForGame=false,scanSong=null,raf=0;
+async function startScan(forGame){scanForGame=forGame;stopAudio();$('scanPlayer').style.display='none';$('scanRev').innerHTML='';$('scanMsg').textContent='Point the camera at the QR side of a card.';
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=$('cam');v.srcObject=stream;v.style.display='block';await v.play();tick()}
+ catch(e){$('scanMsg').innerHTML='Camera unavailable ('+HX.esc(e.message)+'). Camera needs https or localhost. <br>Or paste a link: <input id="manualLink" placeholder="music.youtube.com/watch?v=…"><button onclick="gotCode($(\'manualLink\').value)">Go</button>'}}
+function tick(){const v=$('cam'),c=$('cv');if(!stream)return;if(v.readyState>=2){c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(v,0,0);
+ const code=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height,{inversionAttempts:'attemptBoth'});if(code&&HX.parseId(code.data)){gotCode(code.data);return}}raf=requestAnimationFrame(tick)}
+function stopScan(){cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('cam').style.display='none'}
+function gotCode(data){const id=HX.parseId(data);if(!id){toast('Not a YouTube link');return}stopScan();
+ scanSong=HITSTER_SONGS.concat(HX.custom()).find(s=>s.id==id)||{id,title:'(unknown – see card back)',artist:'',year:'?'};
+ if(scanForGame&&G&&G.phase=='place'){if(scanSong.year=='?'){const y=prompt('Card not in deck – enter the year from the card back:');if(!+y)return;scanSong.year=+y;scanSong.title='(physical card)';}
+  G.song=scanSong;G.sel=null;loadSong(id);show('game');render();toast('Card loaded – press Play');return}
+ $('scanMsg').textContent='Card scanned! Press Play.';$('scanPlayer').style.display='block';loadSong(id)}
+function scanReveal(){const s=scanSong;$('scanRev').innerHTML=s?`<b>${HX.esc(s.title)}</b> – ${HX.esc(s.artist)} <b>${s.year}</b>`:''}
+if('serviceWorker' in navigator&&location.protocol=='https:'&&!/HitsterApp/.test(navigator.userAgent))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
