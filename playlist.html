@@ -1,0 +1,27 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HITSTER · פלייליסט</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b0218">
+<script src="songs.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#2a0a4a,#0b0218 60%) fixed;color:#f4ecff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+.w{max-width:600px;margin:0 auto;padding:14px 14px 60px}
+h1{text-align:center;font-size:2.4rem;letter-spacing:.08em;margin:.3em 0;text-shadow:0 0 8px #ff2bd6,0 0 22px #ff2bd6,0 0 40px #00e5ff}
+.p{background:rgba(26,11,51,.85);border:1px solid #3d1d6e;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 0 20px rgba(255,43,214,.12)}
+h2{color:#00e5ff;margin:.2em 0;text-shadow:0 0 10px #00e5ff}
+a.b{display:block;text-align:center;text-decoration:none;font-weight:800;font-size:1.35rem;padding:18px;margin:12px 0;border-radius:18px;color:#fff;background:#ff2bd6;box-shadow:0 0 16px rgba(255,43,214,.7)}
+a.b:nth-of-type(even){background:#00e5ff;color:#120024;box-shadow:0 0 16px rgba(0,229,255,.6)}
+a.b small{display:block;font-weight:400;font-size:.75em;opacity:.85}
+ol{padding-inline-start:22px;line-height:1.7}.m{color:#a993cf;font-size:.9em}a.l{color:#00e5ff}
+</style></head><body><div class="w"><h1>HITSTER</h1>
+<div class="p"><h2>יצירת פלייליסט ב‑YouTube</h2><div id="btns"></div></div>
+<div class="p"><h2>הוראות</h2><ol>
+<li>לחצו על <b>חלק 1</b> – יפתח תור השמעה ביוטיוב.</li>
+<li>הקישו על שם הרשימה / הכותרת למעלה, ואז על <b>"שמור פלייליסט"</b> (Save playlist) ותנו לו את השם <b>Hitster</b>.</li>
+<li>בחלקים 2‑4: פתחו כל חלק, הקישו על שם הרשימה → <b>"הוסף לפלייליסט קיים"</b> (Add to existing playlist) ובחרו ב‑<b>Hitster</b>.</li>
+</ol><div class="m">צריך להיות מחובר לחשבון YouTube. אפשר גם לפתוח את הפלייליסט ב‑YouTube Music.</div></div>
+<div class="p center"><a class="l" href="index.html">⬅ חזרה למשחק</a></div></div>
+<script>
+const ids=HITSTER_SONGS.map(s=>s.id),N=50;let h='';
+for(let i=0,k=1;i<ids.length;i+=N,k++){const c=ids.slice(i,i+N);
+ h+=`<a class="b" target="_blank" rel="noopener" href="https://www.youtube.com/watch_videos?video_ids=${c.join(',')}">חלק ${k} (${i+1}-${i+c.length})<small>${c.length} שירים</small></a>`}
+document.getElementById('btns').innerHTML=h;
+</script></body></html>
